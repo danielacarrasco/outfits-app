@@ -50,7 +50,7 @@
 <div class="grid">
   {% for i in items %}
   <a class="card" href="/items/{{ i.id }}">
-    <div class="photo"><img src="/{{ i.image_path }}"></div>
+    <div class="photo"><img src="/uploads/{{ i.image_path }}"></div>
     <div class="body">
       <p class="title">{{ i.name }}</p>
       <p class="meta">{{ i.category }}{% if i.subcategory %} · {{ i.subcategory }}{% endif %}</p>

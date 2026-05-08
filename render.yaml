@@ -1,0 +1,31 @@
+# Render Blueprint for Seam Wardrobe.
+# Uses a 1 GB persistent disk so SQLite + uploads survive restarts/redeploys.
+# Disks are not available on the free tier — this provisions a Starter web service.
+services:
+  - type: web
+    name: seam-wardrobe
+    runtime: python
+    plan: starter
+    region: singapore        # closest to Melbourne; change if you prefer (oregon, frankfurt, etc.)
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: seam-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////var/data/seam.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: OPENAI_VISION_MODEL
+        value: gpt-4o-2024-08-06
+      - key: OPENAI_TEXT_MODEL
+        value: gpt-4o-2024-08-06
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false   # set in the Render dashboard, not in this file

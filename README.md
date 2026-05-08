@@ -57,3 +57,45 @@ app/
   Outputs).
 - Default style preferences are seeded for a Melbourne, polished-creative,
   earthy-palette wearer; edit them in `/preferences`.
+
+## Deploy to Render
+
+The repo ships with a `render.yaml` Blueprint that provisions a Starter
+web service plus a 1 GB persistent disk so SQLite and uploaded images
+survive restarts and redeploys.
+
+> Cost: roughly USD ~$8/month (Starter web $7 + 1 GB disk $1). The free
+> web tier doesn't support disks; if you'd rather use it, see the
+> ephemeral note below.
+
+### One-time setup
+
+1. Push this repo to GitHub (already done if you're reading this in the
+   GitHub UI).
+2. Sign in to [Render](https://render.com) and click **New +** →
+   **Blueprint**.
+3. Connect the GitHub repo. Render reads `render.yaml` and shows the
+   service it will create. Click **Apply**.
+4. When prompted, paste your `OPENAI_API_KEY` (the `sync: false` flag
+   keeps it out of the repo). All other env vars come from the Blueprint.
+5. Wait for the first build to finish. Render gives you a URL like
+   `https://seam-wardrobe.onrender.com`.
+
+### Deploys after that
+
+`autoDeploy: true` is set, so any push to `main` triggers a redeploy.
+Schema migrations run automatically because `init_db()` calls
+`create_all()` on startup. For destructive schema changes you'd want a
+proper migration tool (Alembic) — out of scope for the MVP.
+
+### Local development still works
+
+`.env` is read first; if `DATABASE_URL` and `UPLOAD_DIR` aren't set, the
+app falls back to `./data/seam.db` and `./uploads/`.
+
+### Free-tier alternative (ephemeral)
+
+If you don't want to pay for a disk, drop the `disk:` block and the two
+env vars that point at `/var/data` from `render.yaml`, switch
+`plan: starter` to `plan: free`, and accept that your DB and uploads
+reset on every redeploy. Only useful for kicking the tyres.

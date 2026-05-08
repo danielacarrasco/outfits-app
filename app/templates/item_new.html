@@ -86,7 +86,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
   }
   const data = await r.json();
   document.getElementById('image_path').value = data.image_path;
-  document.getElementById('previewImg').src = '/' + data.image_path;
+  document.getElementById('previewImg').src = '/uploads/' + data.image_path;
   document.getElementById('ai_raw').value = data.ai ? JSON.stringify(data.ai) : '';
 
   if (data.ai) {
