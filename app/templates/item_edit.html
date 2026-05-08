@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ item.name }} · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Edit piece</h1>
+<p class="subhead">Adjust anything you'd like — the photo stays as-is.</p>
+
+<div class="row" style="align-items:flex-start; gap:24px;">
+  <div style="flex:0 0 320px;">
+    <div class="card"><div class="photo"><img src="/uploads/{{ item.image_path }}"></div></div>
+  </div>
+  <form class="stacked" method="post" action="/api/items/{{ item.id }}/edit" style="flex:1; min-width:320px;">
+    <div><label>Name</label><input name="name" type="text" value="{{ item.name }}" required></div>
+    <div class="pair">
+      <div><label>Category</label>
+        <select name="category">
+          {% for c in ['top','bottom','dress','outerwear','footwear','bag','accessory','fabric','pattern','other'] %}
+          <option value="{{ c }}" {% if item.category == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div><label>Subcategory</label><input name="subcategory" type="text" value="{{ item.subcategory }}"></div>
+    </div>
+    <div class="pair">
+      <div><label>Colour family</label><input name="colour_family" type="text" value="{{ item.colour_family }}"></div>
+      <div><label>Exact colours (comma-separated)</label><input name="exact_colours" type="text" value="{{ item.exact_colours|join(', ') }}"></div>
+    </div>
+    <div class="pair">
+      <div><label>Fabric guess</label>
+        <select name="fabric_guess">
+          {% for c in ['cotton','viscose','silk','acetate','wool','polyester','leather','denim','knit','crepe','satin','tweed','linen','unknown'] %}
+          <option value="{{ c }}" {% if item.fabric_guess == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div><label>Fabric texture</label><input name="fabric_texture" type="text" value="{{ item.fabric_texture }}"></div>
+    </div>
+    <div><label>Silhouette</label><input name="silhouette" type="text" value="{{ item.silhouette }}"></div>
+    <div class="pair">
+      <div><label>Warmth (1-5)</label><input name="warmth_level" type="number" min="1" max="5" value="{{ item.warmth_level }}"></div>
+      <div><label>Formality (1-5)</label><input name="formality_level" type="number" min="1" max="5" value="{{ item.formality_level }}"></div>
+    </div>
+    <div class="pair">
+      <div><label>Season</label>
+        <select name="season">
+          {% for c in ['summer','winter','transeasonal','all-season'] %}
+          <option value="{{ c }}" {% if item.season == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div><label>Use</label>
+        <div class="row">
+          <label><input type="checkbox" name="work_appropriate" value="true" {% if item.work_appropriate %}checked{% endif %}> Work</label>
+          <label><input type="checkbox" name="weekend_appropriate" value="true" {% if item.weekend_appropriate %}checked{% endif %}> Weekend</label>
+        </div>
+      </div>
+    </div>
+    <div><label>Condition</label>
+      <select name="condition">
+        <option value="new" {% if item.condition == 'new' %}selected{% endif %}>New — unworn, possibly tags on</option>
+        <option value="like_new" {% if item.condition == 'like_new' %}selected{% endif %}>Like new — barely used</option>
+        <option value="good" {% if item.condition in ['good', '', None] %}selected{% endif %}>Good — light wear, fully intact</option>
+        <option value="worn" {% if item.condition == 'worn' %}selected{% endif %}>Worn — visible pilling, fading or stretch</option>
+        <option value="tired" {% if item.condition == 'tired' %}selected{% endif %}>Tired — needs repair or replacement</option>
+      </select>
+    </div>
+    <div><label>Notes</label><textarea name="notes">{{ item.notes }}</textarea></div>
+    <div class="row">
+      <button class="btn" type="submit">Save changes</button>
+      <a class="btn ghost" href="/items/{{ item.id }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

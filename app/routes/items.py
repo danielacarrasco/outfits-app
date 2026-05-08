@@ -136,6 +136,7 @@ def create_item(
 
 @router.post("/{item_id}/update")
 def update_item(item_id: int, payload: WardrobeItemUpdate, db: Session = Depends(get_db)):
+    """JSON update endpoint."""
     item = db.get(models.WardrobeItem, item_id)
     if not item:
         raise HTTPException(404, "Item not found")
@@ -143,6 +144,51 @@ def update_item(item_id: int, payload: WardrobeItemUpdate, db: Session = Depends
         setattr(item, k, v)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/{item_id}/edit")
+def edit_item_form(
+    item_id: int,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    category: str = Form(...),
+    subcategory: str = Form(""),
+    colour_family: str = Form(""),
+    exact_colours: str = Form(""),
+    fabric_guess: str = Form("unknown"),
+    fabric_texture: str = Form(""),
+    silhouette: str = Form(""),
+    warmth_level: int = Form(3),
+    formality_level: int = Form(3),
+    work_appropriate: bool = Form(False),
+    weekend_appropriate: bool = Form(False),
+    season: str = Form("transeasonal"),
+    condition: str = Form("good"),
+    notes: str = Form(""),
+):
+    """HTML form update; redirects to the item detail page."""
+    item = db.get(models.WardrobeItem, item_id)
+    if not item:
+        raise HTTPException(404, "Item not found")
+    if condition not in {"new", "like_new", "good", "worn", "tired"}:
+        condition = item.condition or "good"
+    item.name = name
+    item.category = category
+    item.subcategory = subcategory
+    item.colour_family = colour_family
+    item.exact_colours = [c.strip() for c in exact_colours.split(",") if c.strip()]
+    item.fabric_guess = fabric_guess
+    item.fabric_texture = fabric_texture
+    item.silhouette = silhouette
+    item.warmth_level = warmth_level
+    item.formality_level = formality_level
+    item.work_appropriate = work_appropriate
+    item.weekend_appropriate = weekend_appropriate
+    item.season = season
+    item.condition = condition
+    item.notes = notes
+    db.commit()
+    return RedirectResponse(url=f"/items/{item.id}", status_code=303)
 
 
 @router.post("/{item_id}/delete")
