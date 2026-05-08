@@ -101,6 +101,14 @@ def item_detail(request: Request, item_id: int, db: Session = Depends(get_db)):
     return render(request, "item_detail.html", item=item, outfits=item.outfits)
 
 
+@router.get("/items/{item_id}/edit", response_class=HTMLResponse)
+def item_edit(request: Request, item_id: int, db: Session = Depends(get_db)):
+    item = db.get(models.WardrobeItem, item_id)
+    if not item:
+        raise HTTPException(404)
+    return render(request, "item_edit.html", item=item)
+
+
 @router.get("/planner", response_class=HTMLResponse)
 def planner(request: Request, must_include: Optional[int] = None, db: Session = Depends(get_db)):
     item = db.get(models.WardrobeItem, must_include) if must_include else None
