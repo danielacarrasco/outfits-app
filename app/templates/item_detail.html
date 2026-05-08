@@ -16,6 +16,7 @@
       <dt>Silhouette</dt><dd>{{ item.silhouette or '—' }}</dd>
       <dt>Warmth · Formality</dt><dd>{{ item.warmth_level }} / 5 · {{ item.formality_level }} / 5</dd>
       <dt>Season</dt><dd>{{ item.season }}</dd>
+      <dt>Condition</dt><dd><span class="chip cond-{{ item.condition }}">{{ item.condition.replace('_', ' ') }}</span></dd>
       <dt>Use</dt><dd>{% if item.work_appropriate %}Work {% endif %}{% if item.weekend_appropriate %}Weekend{% endif %}</dd>
       <dt>Notes</dt><dd>{{ item.notes or '—' }}</dd>
       <dt>AI confidence</dt><dd>{{ '%.2f'|format(item.ai_confidence_score) }}</dd>

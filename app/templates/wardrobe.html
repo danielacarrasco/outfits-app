@@ -44,6 +44,15 @@
       <option value="weekend" {% if active.work == 'weekend' %}selected{% endif %}>Weekend</option>
     </select>
   </div>
+  <div class="group">
+    <label>Condition</label>
+    <select name="condition" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for c in ['new','like_new','good','worn','tired'] %}
+      <option value="{{ c }}" {% if active.condition == c %}selected{% endif %}>{{ c.replace('_',' ') }}</option>
+      {% endfor %}
+    </select>
+  </div>
 </form>
 
 {% if items %}
@@ -58,6 +67,7 @@
         {% if i.colour_family %}<span class="chip">{{ i.colour_family }}</span>{% endif %}
         {% if i.fabric_guess and i.fabric_guess != 'unknown' %}<span class="chip">{{ i.fabric_guess }}</span>{% endif %}
         {% if i.silhouette %}<span class="chip">{{ i.silhouette }}</span>{% endif %}
+        {% if i.condition and i.condition != 'good' %}<span class="chip cond-{{ i.condition }}">{{ i.condition.replace('_',' ') }}</span>{% endif %}
       </div>
     </div>
   </a>

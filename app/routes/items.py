@@ -73,12 +73,15 @@ def create_item(
     work_appropriate: bool = Form(False),
     weekend_appropriate: bool = Form(False),
     season: str = Form("transeasonal"),
+    condition: str = Form("good"),
     notes: str = Form(""),
     ai_confidence_score: float = Form(0.0),
     ai_raw: str = Form(""),
 ):
     """Step 2: persist the user-approved values + AI log."""
     colours = [c.strip() for c in exact_colours.split(",") if c.strip()]
+    if condition not in {"new", "like_new", "good", "worn", "tired"}:
+        condition = "good"
     item = models.WardrobeItem(
         name=name,
         image_path=image_path,
@@ -94,6 +97,7 @@ def create_item(
         work_appropriate=work_appropriate,
         weekend_appropriate=weekend_appropriate,
         season=season,
+        condition=condition,
         notes=notes,
         ai_confidence_score=ai_confidence_score,
     )
@@ -114,7 +118,8 @@ def create_item(
         "fabric_guess": fabric_guess, "fabric_texture": fabric_texture,
         "silhouette": silhouette, "warmth_level": warmth_level,
         "formality_level": formality_level, "work_appropriate": work_appropriate,
-        "weekend_appropriate": weekend_appropriate, "season": season, "notes": notes,
+        "weekend_appropriate": weekend_appropriate, "season": season,
+        "condition": condition, "notes": notes,
     }
     user_corrected = any(raw.get(k) != v for k, v in final.items() if k in raw)
     log = models.AiClassificationLog(

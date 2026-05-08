@@ -63,6 +63,15 @@
           </div>
         </div>
       </div>
+      <div><label>Condition</label>
+        <select name="condition" id="f_condition">
+          <option value="new">New — unworn, possibly tags on</option>
+          <option value="like_new">Like new — barely used</option>
+          <option value="good" selected>Good — light wear, fully intact</option>
+          <option value="worn">Worn — visible pilling, fading or stretch</option>
+          <option value="tired">Tired — needs repair or replacement</option>
+        </select>
+      </div>
       <div><label>Notes</label><textarea name="notes" id="f_notes"></textarea></div>
       <div class="row">
         <button class="btn" type="submit">Save to wardrobe</button>
@@ -104,6 +113,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
     document.getElementById('f_season').value = a.season || 'transeasonal';
     document.getElementById('f_work').checked = !!a.work_appropriate;
     document.getElementById('f_weekend').checked = !!a.weekend_appropriate;
+    document.getElementById('f_condition').value = a.condition || 'good';
     document.getElementById('f_notes').value = a.notes || '';
     document.getElementById('ai_confidence_score').value = a.ai_confidence_score || 0;
     document.getElementById('uploadStatus').textContent = 'AI classification ready — review and edit below.';
