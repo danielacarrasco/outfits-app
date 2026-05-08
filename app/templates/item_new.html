@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Add item · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Add a piece</h1>
+<p class="subhead">Upload a photo. The app will classify it. Review and correct before saving.</p>
+
+<div id="upload-step" class="upload-zone">
+  <input type="file" id="file" accept="image/*" />
+  <p class="meta" style="margin-top:14px;">JPG, PNG, WEBP, or HEIC.</p>
+  <button class="btn" id="uploadBtn">Classify</button>
+  <div id="uploadStatus" class="meta" style="margin-top:14px;"></div>
+</div>
+
+<div id="review-step" style="display:none;">
+  <div class="row" style="align-items:flex-start; gap:24px; margin-top:24px;">
+    <div style="flex:0 0 320px;">
+      <img id="previewImg" class="preview" style="width:100%; border-radius:14px;" />
+    </div>
+    <form class="stacked" id="saveForm" method="post" action="/api/items/" style="flex:1; min-width:320px;">
+      <input type="hidden" name="image_path" id="image_path">
+      <input type="hidden" name="ai_confidence_score" id="ai_confidence_score" value="0">
+      <input type="hidden" name="ai_raw" id="ai_raw" value="">
+
+      <div><label>Name</label><input name="name" id="f_name" type="text" required></div>
+      <div class="pair">
+        <div><label>Category</label>
+          <select name="category" id="f_category">
+            {% for c in ['top','bottom','dress','outerwear','footwear','bag','accessory','fabric','pattern','other'] %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div><label>Subcategory</label><input name="subcategory" id="f_subcategory" type="text"></div>
+      </div>
+      <div class="pair">
+        <div><label>Colour family</label><input name="colour_family" id="f_colour_family" type="text"></div>
+        <div><label>Exact colours (comma-separated)</label><input name="exact_colours" id="f_exact_colours" type="text"></div>
+      </div>
+      <div class="pair">
+        <div><label>Fabric guess</label>
+          <select name="fabric_guess" id="f_fabric_guess">
+            {% for c in ['cotton','viscose','silk','acetate','wool','polyester','leather','denim','knit','crepe','satin','tweed','linen','unknown'] %}
+            <option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><label>Fabric texture</label><input name="fabric_texture" id="f_fabric_texture" type="text"></div>
+      </div>
+      <div><label>Silhouette</label><input name="silhouette" id="f_silhouette" type="text"></div>
+      <div class="pair">
+        <div><label>Warmth (1-5)</label><input name="warmth_level" id="f_warmth_level" type="number" min="1" max="5" value="3"></div>
+        <div><label>Formality (1-5)</label><input name="formality_level" id="f_formality_level" type="number" min="1" max="5" value="3"></div>
+      </div>
+      <div class="pair">
+        <div><label>Season</label>
+          <select name="season" id="f_season">
+            {% for c in ['summer','winter','transeasonal','all-season'] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><label>Use</label>
+          <div class="row">
+            <label><input type="checkbox" name="work_appropriate" id="f_work" value="true"> Work</label>
+            <label><input type="checkbox" name="weekend_appropriate" id="f_weekend" value="true"> Weekend</label>
+          </div>
+        </div>
+      </div>
+      <div><label>Notes</label><textarea name="notes" id="f_notes"></textarea></div>
+      <div class="row">
+        <button class="btn" type="submit">Save to wardrobe</button>
+        <a class="btn ghost" href="/wardrobe">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('uploadBtn').addEventListener('click', async () => {
+  const fileEl = document.getElementById('file');
+  if (!fileEl.files.length) { alert('Choose a file first.'); return; }
+  const fd = new FormData();
+  fd.append('file', fileEl.files[0]);
+  document.getElementById('uploadStatus').textContent = 'Uploading and classifying…';
+  const r = await fetch('/api/items/upload', { method: 'POST', body: fd });
+  if (!r.ok) {
+    document.getElementById('uploadStatus').textContent = 'Upload failed.';
+    return;
+  }
+  const data = await r.json();
+  document.getElementById('image_path').value = data.image_path;
+  document.getElementById('previewImg').src = '/' + data.image_path;
+  document.getElementById('ai_raw').value = data.ai ? JSON.stringify(data.ai) : '';
+
+  if (data.ai) {
+    const a = data.ai;
+    document.getElementById('f_name').value = a.name || '';
+    document.getElementById('f_category').value = a.category || 'other';
+    document.getElementById('f_subcategory').value = a.subcategory || '';
+    document.getElementById('f_colour_family').value = a.colour_family || '';
+    document.getElementById('f_exact_colours').value = (a.exact_colours || []).join(', ');
+    document.getElementById('f_fabric_guess').value = a.fabric_guess || 'unknown';
+    document.getElementById('f_fabric_texture').value = a.fabric_texture || '';
+    document.getElementById('f_silhouette').value = a.silhouette || '';
+    document.getElementById('f_warmth_level').value = a.warmth_level || 3;
+    document.getElementById('f_formality_level').value = a.formality_level || 3;
+    document.getElementById('f_season').value = a.season || 'transeasonal';
+    document.getElementById('f_work').checked = !!a.work_appropriate;
+    document.getElementById('f_weekend').checked = !!a.weekend_appropriate;
+    document.getElementById('f_notes').value = a.notes || '';
+    document.getElementById('ai_confidence_score').value = a.ai_confidence_score || 0;
+    document.getElementById('uploadStatus').textContent = 'AI classification ready — review and edit below.';
+  } else {
+    document.getElementById('uploadStatus').textContent = data.ai_error || 'AI unavailable. Fill the form manually.';
+  }
+  document.getElementById('upload-step').style.display = 'none';
+  document.getElementById('review-step').style.display = 'block';
+});
+</script>
+{% endblock %}

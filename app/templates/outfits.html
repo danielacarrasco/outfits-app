@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Outfits · Seam{% endblock %}
+{% block content %}
+<div class="row" style="justify-content: space-between;">
+  <h1 class="display">Outfits</h1>
+  <div class="row">
+    <a class="btn ghost" href="/outfits/new">Build manually</a>
+    <a class="btn" href="/planner">Plan with AI</a>
+  </div>
+</div>
+<p class="subhead">{{ outfits|length }} saved</p>
+
+<form method="get" class="facets">
+  <div class="group">
+    <label>Occasion</label>
+    <select name="occasion" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for o in ['work','casual work','weekend','drinks','brunch','show','travel'] %}
+      <option value="{{ o }}" {% if active.occasion == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="group">
+    <label>Filter</label>
+    <select name="rating" onchange="this.form.submit()">
+      <option value="">All</option>
+      <option value="liked" {% if active.rating == 'liked' %}selected{% endif %}>Liked</option>
+      <option value="loved" {% if active.rating == 'loved' %}selected{% endif %}>Loved</option>
+      <option value="recent" {% if active.rating == 'recent' %}selected{% endif %}>Recently worn</option>
+    </select>
+  </div>
+</form>
+
+{% if outfits %}
+<div class="grid">
+  {% for o in outfits %}
+  <a class="card" href="/outfits/{{ o.id }}">
+    <div class="photo">
+      {% if o.items and o.items[0].image_path %}
+        <img src="/{{ o.items[0].image_path }}">
+      {% else %}<span class="serif">{{ o.name }}</span>{% endif %}
+    </div>
+    <div class="body">
+      <p class="title">{{ o.name }}</p>
+      <p class="meta">{{ o.occasion }} · {{ o.weather }}{% if o.user_rating > 0 %} · liked{% endif %}</p>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">No outfits yet. <a href="/planner">Plan one</a>.</div>
+{% endif %}
+{% endblock %}

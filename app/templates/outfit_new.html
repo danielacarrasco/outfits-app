@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}New outfit · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Build an outfit</h1>
+<p class="subhead">Pick items from your wardrobe.</p>
+
+{% if not items %}
+<div class="empty">Add some items first. <a href="/items/new">Add an item</a>.</div>
+{% else %}
+<form class="stacked" method="post" action="/api/outfits/">
+  <div><label>Name</label><input name="name" type="text" required></div>
+  <div class="pair">
+    <div><label>Occasion</label>
+      <select name="occasion">
+        {% for o in ['work','casual work','weekend','drinks','brunch','show','travel'] %}
+        <option value="{{ o }}">{{ o }}</option>{% endfor %}
+      </select>
+    </div>
+    <div><label>Weather</label>
+      <select name="weather">
+        {% for o in ['warm','cold','variable','rainy'] %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div><label>Notes</label><textarea name="notes"></textarea></div>
+
+  <div><label>Items</label>
+    <div class="grid">
+      {% for i in items %}
+      <label class="card" style="cursor:pointer;">
+        <div class="photo"><img src="/{{ i.image_path }}"></div>
+        <div class="body">
+          <p class="title">{{ i.name }}</p>
+          <p class="meta">{{ i.category }}</p>
+          <input type="checkbox" name="item_ids" value="{{ i.id }}">
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div><button class="btn" type="submit">Save outfit</button></div>
+</form>
+{% endif %}
+{% endblock %}

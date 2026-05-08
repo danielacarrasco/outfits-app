@@ -1,0 +1,182 @@
+/* Seam Wardrobe — editorial, warm, fashion-focused. */
+:root {
+  --bg: #f6f1ea;
+  --surface: #ffffff;
+  --ink: #1a1815;
+  --muted: #6b655c;
+  --line: #e3dcd1;
+  --accent: #6b3a1f;          /* chocolate */
+  --accent-soft: #b46a3a;     /* terracotta */
+  --hot: #ff2d87;             /* hot pink power accent */
+  --good: #3f6b3f;
+  --bad: #8a2a2a;
+  --radius: 14px;
+  --shadow: 0 1px 0 rgba(0,0,0,0.04), 0 8px 28px rgba(60, 40, 20, 0.06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.serif { font-family: "Playfair Display", "Iowan Old Style", "Georgia", serif; letter-spacing: -0.01em; }
+
+a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+a:hover { border-bottom-color: var(--ink); }
+
+header.site {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 28px 40px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 5;
+}
+header.site .brand {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px; letter-spacing: 0.02em;
+}
+header.site .brand small {
+  display: block; font-family: Inter, sans-serif;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--muted); margin-top: 2px;
+}
+header.site nav a {
+  margin-left: 22px; font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--muted);
+}
+header.site nav a.active, header.site nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+main { padding: 40px; max-width: 1280px; margin: 0 auto; }
+
+h1.display {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 44px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 8px;
+}
+.subhead { color: var(--muted); margin: 0 0 32px; font-size: 14px; letter-spacing: 0.04em; }
+
+.grid {
+  display: grid; gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line);
+}
+.card .photo {
+  aspect-ratio: 4 / 5; background: #efe8dd;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.card .photo img { width: 100%; height: 100%; object-fit: cover; }
+.card .body { padding: 14px 16px; }
+.card .title { font-family: "Playfair Display", Georgia, serif; font-size: 18px; margin: 0 0 4px; }
+.card .meta { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.tile-actions {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 12px 0 36px;
+}
+.tile-actions a.tile {
+  display: block; padding: 26px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.tile-actions a.tile h3 { margin: 0 0 6px; font-family: "Playfair Display", Georgia, serif; font-size: 22px; }
+.tile-actions a.tile p { margin: 0; color: var(--muted); font-size: 13px; }
+.tile-actions a.tile:hover { border-color: var(--ink); }
+
+.btn, button.btn {
+  display: inline-block; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--bg);
+  font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; font-family: inherit;
+}
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.hot { background: var(--hot); border-color: var(--hot); color: white; }
+.btn.small { padding: 6px 12px; font-size: 11px; }
+
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-block; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--line); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--muted); text-transform: uppercase;
+}
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.colour { padding-left: 22px; position: relative; }
+.chip.colour::before {
+  content: ""; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px; border-radius: 50%; background: var(--c, #ccc);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.facets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.facets .group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.facets label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+
+form.stacked { display: grid; gap: 14px; max-width: 720px; }
+form.stacked label { display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+form.stacked input[type=text], form.stacked input[type=number],
+form.stacked select, form.stacked textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--surface); font: inherit; color: var(--ink);
+}
+form.stacked textarea { min-height: 80px; }
+form.stacked .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.section { margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.section h2 { font-family: "Playfair Display", Georgia, serif; font-size: 26px; margin: 0; }
+
+.upload-zone {
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: 40px; text-align: center; background: var(--surface);
+}
+.upload-zone img.preview { max-height: 360px; border-radius: 10px; }
+
+.outfit-items {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.feedback-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.feedback-buttons button {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 8px 14px; border-radius: 999px; font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer; font-family: inherit;
+}
+.feedback-buttons button.good { border-color: var(--good); color: var(--good); }
+.feedback-buttons button.bad { border-color: var(--bad); color: var(--bad); }
+
+.gap-card {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; background: var(--surface); margin-bottom: 14px;
+}
+.gap-card .priority { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.priority.high { color: var(--hot); }
+.priority.medium { color: var(--accent-soft); }
+.priority.low { color: var(--muted); }
+
+.kv { display: grid; grid-template-columns: 200px 1fr; gap: 8px 18px; margin: 12px 0; }
+.kv dt { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.kv dd { margin: 0; }
+
+.alert { padding: 12px 14px; border-radius: 8px; background: #fff3e6; border: 1px solid #f1d8b3; color: #6a4014; font-size: 13px; }
+
+.empty { padding: 60px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); }
+
+.suggestion {
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 18px;
+  background: var(--surface); margin-bottom: 14px;
+}
+.suggestion h3 { font-family: "Playfair Display", Georgia, serif; margin: 0 0 6px; }
+.suggestion .why { color: var(--muted); font-size: 13px; }
+.suggestion .ids { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted); }
+
+footer.site { padding: 40px; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }

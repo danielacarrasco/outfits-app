@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Outfit planner · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Plan an outfit</h1>
+<p class="subhead">Tell me the brief. I'll style three to seven looks from your wardrobe.</p>
+
+{% if must_include_item %}
+<div class="alert">Must include <strong>{{ must_include_item.name }}</strong>.</div>
+{% endif %}
+
+<form id="planForm" class="stacked">
+  <div class="pair">
+    <div><label>Occasion</label>
+      <select name="occasion">
+        {% for o in ['work','casual work','weekend','drinks','brunch','show','travel'] %}
+        <option value="{{ o }}">{{ o }}</option>{% endfor %}
+      </select>
+    </div>
+    <div><label>Weather</label>
+      <select name="weather">
+        {% for o in ['warm','cold','variable','rainy'] %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="pair">
+    <div><label>Formality (1-5)</label><input type="number" name="formality" min="1" max="5" value="3"></div>
+    <div><label>Mood</label><input type="text" name="mood" placeholder="e.g. polished, slightly playful"></div>
+  </div>
+  {% if must_include_item %}
+    <input type="hidden" name="must_include_item_id" value="{{ must_include_item.id }}">
+  {% endif %}
+  <div><button class="btn" type="submit">Generate outfits</button></div>
+</form>
+
+<div id="suggestions" style="margin-top: 28px;"></div>
+
+<script>
+document.getElementById('planForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const payload = {
+    occasion: fd.get('occasion'),
+    weather: fd.get('weather'),
+    formality: parseInt(fd.get('formality') || '3', 10),
+    mood: fd.get('mood') || '',
+  };
+  if (fd.get('must_include_item_id')) {
+    payload.must_include_item_id = parseInt(fd.get('must_include_item_id'), 10);
+  }
+  const out = document.getElementById('suggestions');
+  out.innerHTML = '<p class="meta">Styling…</p>';
+  const r = await fetch('/api/outfits/plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    out.innerHTML = '<div class="alert">' + (err.detail || 'Could not generate outfits.') + '</div>';
+    return;
+  }
+  const data = await r.json();
+  out.innerHTML = '';
+  for (const o of data.outfits) {
+    const div = document.createElement('div');
+    div.className = 'suggestion';
+    div.innerHTML = `
+      <h3>${o.name}</h3>
+      <p class="why">${o.why_it_works}</p>
+      <p><em>Styling:</em> ${o.styling_notes}</p>
+      <p><em>Layering:</em> ${o.layering_notes}</p>
+      <p class="ids">Items: ${o.item_ids.join(', ')} · confidence ${o.confidence_score.toFixed(2)}</p>
+      ${o.missing_optional_upgrade ? `<p class="meta">Optional upgrade: ${o.missing_optional_upgrade}</p>` : ''}
+    `;
+    const form = document.createElement('form');
+    form.method = 'post'; form.action = '/api/outfits/';
+    form.innerHTML = `
+      <input type="hidden" name="name" value="${o.name.replace(/"/g, '&quot;')}">
+      <input type="hidden" name="occasion" value="${o.occasion}">
+      <input type="hidden" name="weather" value="${payload.weather}">
+      <input type="hidden" name="ai_reasoning_summary" value="${(o.why_it_works + ' / ' + o.styling_notes).replace(/"/g, '&quot;')}">
+    `;
+    for (const id of o.item_ids) {
+      const i = document.createElement('input');
+      i.type = 'hidden'; i.name = 'item_ids'; i.value = id;
+      form.appendChild(i);
+    }
+    const btn = document.createElement('button');
+    btn.className = 'btn'; btn.textContent = 'Save this outfit';
+    form.appendChild(btn);
+    div.appendChild(form);
+    out.appendChild(div);
+  }
+  if (!data.outfits.length) {
+    out.innerHTML = '<div class="alert">No valid outfits — try adjusting the brief or adding more items.</div>';
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Wardrobe gaps · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Wardrobe gaps</h1>
+<p class="subhead">High-impact missing pieces only. Not random shopping.</p>
+
+<button class="btn" id="runBtn">Analyse my wardrobe</button>
+<p class="meta" id="status" style="margin-top:8px;"></p>
+
+<div id="results" style="margin-top: 24px;"></div>
+
+<script>
+document.getElementById('runBtn').addEventListener('click', async () => {
+  document.getElementById('status').textContent = 'Analysing…';
+  const r = await fetch('/api/gaps/analyse', { method: 'POST' });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    document.getElementById('status').textContent = err.detail || 'Could not analyse.';
+    return;
+  }
+  const data = await r.json();
+  document.getElementById('status').textContent = '';
+  const out = document.getElementById('results');
+  out.innerHTML = data.summary ? `<p>${data.summary}</p>` : '';
+  for (const g of data.gaps) {
+    const div = document.createElement('div');
+    div.className = 'gap-card';
+    div.innerHTML = `
+      <p class="priority ${g.priority}">${g.priority} priority · ${g.kind}</p>
+      <h3 class="serif" style="margin:6px 0;">${g.piece}</h3>
+      <p>${g.why_it_unlocks_outfits}</p>
+      <dl class="kv">
+        <dt>Colour</dt><dd>${g.recommended_colour}</dd>
+        <dt>Fabric</dt><dd>${g.recommended_fabric}</dd>
+        <dt>Silhouette</dt><dd>${g.recommended_silhouette}</dd>
+        <dt>Pairs with</dt><dd>${(g.pairs_with_existing || []).join(', ')}</dd>
+        <dt>Search</dt><dd>${(g.search_keywords || []).join(' · ')}</dd>
+      </dl>
+    `;
+    out.appendChild(div);
+  }
+});
+</script>
+{% endblock %}

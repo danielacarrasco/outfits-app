@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} · Seam{% endblock %}
+{% block content %}
+<div class="row" style="align-items: flex-start; gap: 32px;">
+  <div style="flex: 0 0 360px;">
+    <div class="card"><div class="photo"><img src="/{{ item.image_path }}"></div></div>
+  </div>
+  <div style="flex: 1; min-width: 320px;">
+    <h1 class="display">{{ item.name }}</h1>
+    <p class="subhead">{{ item.category }}{% if item.subcategory %} · {{ item.subcategory }}{% endif %}</p>
+
+    <dl class="kv">
+      <dt>Colour family</dt><dd>{{ item.colour_family or '—' }}</dd>
+      <dt>Exact colours</dt><dd>{{ item.exact_colours|join(', ') or '—' }}</dd>
+      <dt>Fabric</dt><dd>{{ item.fabric_guess }} · {{ item.fabric_texture or '—' }}</dd>
+      <dt>Silhouette</dt><dd>{{ item.silhouette or '—' }}</dd>
+      <dt>Warmth · Formality</dt><dd>{{ item.warmth_level }} / 5 · {{ item.formality_level }} / 5</dd>
+      <dt>Season</dt><dd>{{ item.season }}</dd>
+      <dt>Use</dt><dd>{% if item.work_appropriate %}Work {% endif %}{% if item.weekend_appropriate %}Weekend{% endif %}</dd>
+      <dt>Notes</dt><dd>{{ item.notes or '—' }}</dd>
+      <dt>AI confidence</dt><dd>{{ '%.2f'|format(item.ai_confidence_score) }}</dd>
+    </dl>
+
+    <div class="row" style="margin-top: 16px;">
+      <a class="btn" href="/planner?must_include={{ item.id }}">Suggest outfits with this</a>
+      <button class="btn ghost" id="needsBtn">What does this piece need?</button>
+      <button class="btn ghost" id="weightBtn">Is this pulling its weight?</button>
+    </div>
+    <p class="meta" id="answer" style="margin-top:12px;"></p>
+
+    <div class="section"><h2>Outfits using this piece</h2></div>
+    {% if outfits %}
+      <div class="grid">
+        {% for o in outfits %}
+        <a class="card" href="/outfits/{{ o.id }}">
+          <div class="body">
+            <p class="title">{{ o.name }}</p>
+            <p class="meta">{{ o.occasion }}{% if o.user_rating > 0 %} · liked{% endif %}</p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="meta">Not yet styled into any outfits.</p>
+    {% endif %}
+
+    <form method="post" action="/api/items/{{ item.id }}/delete" style="margin-top: 32px;">
+      <button class="btn ghost" type="submit" onclick="return confirm('Delete this item?')">Delete item</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const wornCount = {{ outfits|length }};
+const isWorkable = {{ 'true' if item.work_appropriate else 'false' }};
+document.getElementById('needsBtn').addEventListener('click', () => {
+  const s = "Likely partners: a contrasting {{ 'top' if item.category == 'bottom' else 'bottom' }}, " +
+            "a layer for Melbourne weather, and a structured {{ 'shoe' if item.category != 'footwear' else 'bag' }}. " +
+            "See /gaps for a strategic recommendation.";
+  document.getElementById('answer').textContent = s;
+});
+document.getElementById('weightBtn').addEventListener('click', () => {
+  let s;
+  if (wornCount === 0) s = "It's not earning its keep yet — try styling an outfit with it.";
+  else if (wornCount < 2) s = "Used a little. Worth pushing harder before judging.";
+  else s = "Carrying its weight — used in " + wornCount + " outfits.";
+  document.getElementById('answer').textContent = s;
+});
+</script>
+{% endblock %}

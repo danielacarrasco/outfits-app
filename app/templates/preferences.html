@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Style profile · Seam{% endblock %}
+{% block content %}
+<h1 class="display">Style profile</h1>
+<p class="subhead">What the app knows about you, and what to weight in suggestions.</p>
+
+<div class="section"><h2>Learned from your wardrobe</h2></div>
+<dl class="kv">
+  <dt>Favourite colours</dt><dd>{{ profile.favourite_colours|join(', ') or '—' }}</dd>
+  <dt>Most worn categories</dt><dd>{{ profile.most_worn_categories|join(', ') or '—' }}</dd>
+  <dt>Low-use categories</dt><dd>{{ profile.low_use_categories|join(', ') or '—' }}</dd>
+  <dt>Successful formulas</dt><dd>{{ profile.successful_outfit_formulas|join(' · ') or '—' }}</dd>
+  <dt>Successful colour combos</dt><dd>{{ profile.successful_colour_combinations|join(' · ') or '—' }}</dd>
+  <dt>Disliked silhouettes</dt><dd>{{ profile.disliked_silhouettes|join(', ') or '—' }}</dd>
+  <dt>Gaps by occasion</dt><dd>{{ profile.gaps_by_occasion|join(', ') or '—' }}</dd>
+</dl>
+
+<div class="section"><h2>Preferences (edit anytime)</h2></div>
+<form class="stacked" method="post" action="/api/preferences/update">
+  <div class="pair">
+    <div><label>Preferred colours</label><input type="text" name="preferred_colours" value="{{ pref.preferred_colours|join(', ') }}"></div>
+    <div><label>Avoided colours</label><input type="text" name="avoided_colours" value="{{ pref.avoided_colours|join(', ') }}"></div>
+  </div>
+  <div class="pair">
+    <div><label>Preferred silhouettes</label><input type="text" name="preferred_silhouettes" value="{{ pref.preferred_silhouettes|join(', ') }}"></div>
+    <div><label>Avoided silhouettes</label><input type="text" name="avoided_silhouettes" value="{{ pref.avoided_silhouettes|join(', ') }}"></div>
+  </div>
+  <div class="pair">
+    <div><label>Preferred fabrics</label><input type="text" name="preferred_fabrics" value="{{ pref.preferred_fabrics|join(', ') }}"></div>
+    <div><label>Avoided fabrics</label><input type="text" name="avoided_fabrics" value="{{ pref.avoided_fabrics|join(', ') }}"></div>
+  </div>
+  <div><label>Style keywords</label><input type="text" name="style_keywords" value="{{ pref.style_keywords|join(', ') }}"></div>
+  <div><label>Work constraints</label><textarea name="work_constraints">{{ pref.work_constraints }}</textarea></div>
+  <div><label>Climate constraints</label><textarea name="climate_constraints">{{ pref.climate_constraints }}</textarea></div>
+  <div><label>Allergy / fabric tolerance</label><textarea name="allergy_constraints">{{ pref.allergy_constraints }}</textarea></div>
+  <div><label>Notes</label><textarea name="notes">{{ pref.notes }}</textarea></div>
+  <div><button class="btn" type="submit">Save preferences</button></div>
+</form>
+{% endblock %}
