@@ -36,7 +36,7 @@
   <a class="card" href="/outfits/{{ o.id }}">
     <div class="photo">
       {% if o.items and o.items[0].image_path %}
-        <img src="/{{ o.items[0].image_path }}">
+        <img src="/uploads/{{ o.items[0].image_path }}">
       {% else %}<span class="serif">{{ o.name }}</span>{% endif %}
     </div>
     <div class="body">

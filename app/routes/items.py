@@ -22,6 +22,7 @@ ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic"}
 
 
 def _save_upload(file: UploadFile) -> str:
+    """Save the upload and return only the filename. Public URL is /uploads/<filename>."""
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_EXTS:
         raise HTTPException(400, f"Unsupported file type: {ext}")
@@ -30,7 +31,7 @@ def _save_upload(file: UploadFile) -> str:
     dest = Path(settings.upload_dir) / fname
     with dest.open("wb") as f:
         f.write(file.file.read())
-    return str(dest)
+    return fname
 
 
 @router.post("/upload")

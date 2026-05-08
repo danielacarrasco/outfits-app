@@ -17,7 +17,7 @@
 <div class="outfit-items">
   {% for i in outfit.items %}
   <a class="card" href="/items/{{ i.id }}">
-    <div class="photo"><img src="/{{ i.image_path }}"></div>
+    <div class="photo"><img src="/uploads/{{ i.image_path }}"></div>
     <div class="body"><p class="title" style="font-size:14px;">{{ i.name }}</p><p class="meta">{{ i.category }}</p></div>
   </a>
   {% endfor %}

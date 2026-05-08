@@ -27,7 +27,10 @@
 <div class="grid">
   {% for o in recently_worn %}
   <a class="card" href="/outfits/{{ o.id }}">
-    <div class="photo">{% if o.image_path %}<img src="{{ o.image_path }}">{% else %}<span class="serif">{{ o.name }}</span>{% endif %}</div>
+    <div class="photo">
+      {% if o.items and o.items[0].image_path %}<img src="/uploads/{{ o.items[0].image_path }}">
+      {% else %}<span class="serif">{{ o.name }}</span>{% endif %}
+    </div>
     <div class="body">
       <p class="title">{{ o.name }}</p>
       <p class="meta">{{ o.occasion }} · last worn {{ o.last_worn_at.strftime('%d %b') }}</p>
@@ -42,7 +45,7 @@
 <div class="grid">
   {% for i in underused %}
   <a class="card" href="/items/{{ i.id }}">
-    <div class="photo"><img src="/{{ i.image_path }}"></div>
+    <div class="photo"><img src="/uploads/{{ i.image_path }}"></div>
     <div class="body">
       <p class="title">{{ i.name }}</p>
       <p class="meta">{{ i.category }}{% if i.colour_family %} · {{ i.colour_family }}{% endif %}</p>
