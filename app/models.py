@@ -39,6 +39,9 @@ class WardrobeItem(Base):
     notes = Column(Text, default="")
     ai_confidence_score = Column(Float, default=0.0)
 
+    # Condition: one of new, like_new, good, worn, tired.
+    condition = Column(String(20), default="good")
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -10,6 +10,10 @@ Category = Literal[
 Season = Literal["summer", "winter", "transeasonal", "all-season"]
 Occasion = Literal["work", "casual work", "weekend", "drinks", "brunch", "show", "travel"]
 Weather = Literal["warm", "cold", "variable", "rainy"]
+# new = unworn; like_new = barely used, no signs of wear; good = light wear, intact;
+# worn = visible wear (pilling, stretch, fading) but still usable;
+# tired = needs replacing or repair.
+Condition = Literal["new", "like_new", "good", "worn", "tired"]
 
 
 class GarmentClassification(BaseModel):
@@ -31,6 +35,7 @@ class GarmentClassification(BaseModel):
     work_appropriate: bool
     weekend_appropriate: bool
     season: Season
+    condition: Condition
     notes: str
     ai_confidence_score: float = Field(..., ge=0, le=1)
 
@@ -52,6 +57,7 @@ class WardrobeItemOut(BaseModel):
     work_appropriate: bool
     weekend_appropriate: bool
     season: str
+    condition: str
     notes: str
     ai_confidence_score: float
     created_at: datetime
@@ -72,6 +78,7 @@ class WardrobeItemUpdate(BaseModel):
     work_appropriate: Optional[bool] = None
     weekend_appropriate: Optional[bool] = None
     season: Optional[Season] = None
+    condition: Optional[Condition] = None
     notes: Optional[str] = None
 
 

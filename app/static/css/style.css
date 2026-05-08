@@ -110,6 +110,12 @@ h1.display {
   color: var(--muted); text-transform: uppercase;
 }
 .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.cond-new       { border-color: #3f6b3f; color: #3f6b3f; }
+.chip.cond-like_new  { border-color: #6b8a3f; color: #6b8a3f; }
+.chip.cond-good      { border-color: var(--line); color: var(--muted); }
+.chip.cond-worn      { border-color: var(--accent-soft); color: var(--accent-soft); }
+.chip.cond-tired     { border-color: var(--bad); color: var(--bad); }
+
 .chip.colour { padding-left: 22px; position: relative; }
 .chip.colour::before {
   content: ""; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);

@@ -51,6 +51,7 @@ def wardrobe(
     fabric: Optional[str] = None,
     season: Optional[str] = None,
     work: Optional[str] = None,
+    condition: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     q = db.query(models.WardrobeItem)
@@ -66,6 +67,8 @@ def wardrobe(
         q = q.filter(models.WardrobeItem.work_appropriate.is_(True))
     if work == "weekend":
         q = q.filter(models.WardrobeItem.weekend_appropriate.is_(True))
+    if condition:
+        q = q.filter(models.WardrobeItem.condition == condition)
     items = q.order_by(desc(models.WardrobeItem.created_at)).all()
 
     all_items = db.query(models.WardrobeItem).all()
@@ -81,7 +84,7 @@ def wardrobe(
         items=items,
         facets=facets,
         active={"category": category, "colour": colour, "fabric": fabric,
-                "season": season, "work": work},
+                "season": season, "work": work, "condition": condition},
     )
 
 

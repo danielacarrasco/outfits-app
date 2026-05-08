@@ -14,7 +14,14 @@ CLASSIFY_PROMPT = (
     "schema. Be conservative if uncertain. Identify garment category, "
     "subcategory, colours, fabric guess, texture, silhouette, formality, "
     "warmth, and outfit compatibility. Do not invent brand or exact fabric "
-    "unless visible or supplied. Use Australian English."
+    "unless visible or supplied. Use Australian English.\n\n"
+    "Also estimate the garment's condition using exactly one of these values: "
+    "'new' (looks unworn, tags possibly visible), "
+    "'like_new' (no visible wear), "
+    "'good' (light wear, fully intact), "
+    "'worn' (visible signs of wear: pilling, fading, stretching, scuffs), "
+    "'tired' (clearly worn out, may need repair or replacement). "
+    "If you can't tell from the photo, default to 'good'."
 )
 
 
