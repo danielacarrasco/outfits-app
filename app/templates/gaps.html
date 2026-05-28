@@ -4,15 +4,27 @@
 <h1 class="display">Wardrobe gaps</h1>
 <p class="subhead">High-impact missing pieces only. Not random shopping.</p>
 
-<button class="btn" id="runBtn">Analyse my wardrobe</button>
+<form class="stacked" id="gapForm" style="max-width:720px;">
+  <div>
+    <label>What are you after? (optional)</label>
+    <textarea id="brief" placeholder="e.g. building out cold-office layering, or want more weekend-to-drinks pieces in my earthy palette"></textarea>
+  </div>
+  <div><button class="btn" id="runBtn" type="submit">Analyse my wardrobe</button></div>
+</form>
 <p class="meta" id="status" style="margin-top:8px;"></p>
 
 <div id="results" style="margin-top: 24px;"></div>
 
 <script>
-document.getElementById('runBtn').addEventListener('click', async () => {
+document.getElementById('gapForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
   document.getElementById('status').textContent = 'Analysing…';
-  const r = await fetch('/api/gaps/analyse', { method: 'POST' });
+  const brief = document.getElementById('brief').value;
+  const r = await fetch('/api/gaps/analyse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brief }),
+  });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
     document.getElementById('status').textContent = err.detail || 'Could not analyse.';
