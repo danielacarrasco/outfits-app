@@ -1,6 +1,6 @@
 """Wardrobe gap analysis."""
 
-from typing import List
+from typing import List, Optional
 
 from ..config import settings
 from ..schemas import GapResponse
@@ -13,11 +13,19 @@ SYSTEM_PROMPT = (
     "high-impact gaps — pieces that would unlock multiple new outfits or "
     "fix repeated frustrations. Distinguish foundation pieces, statement "
     "pieces, duplicates, and nice-to-haves. Do not recommend random "
-    "shopping. Return at most 5 recommendations as JSON matching the schema."
+    "shopping. Return at most 5 recommendations as JSON matching the schema. "
+    "If the user provides a brief describing what they're after, treat it as "
+    "the priority lens: weight recommendations toward what they asked for "
+    "while staying honest about what genuinely improves the wardrobe."
 )
 
 
-def analyse_gaps(items: List, preferences, feedback_rows: List) -> GapResponse:
+def analyse_gaps(
+    items: List,
+    preferences,
+    feedback_rows: List,
+    brief: Optional[str] = None,
+) -> GapResponse:
     client = require_client()
 
     inventory = [
@@ -63,6 +71,7 @@ def analyse_gaps(items: List, preferences, feedback_rows: List) -> GapResponse:
         "wardrobe_inventory": inventory,
         "feedback": feedback,
         "preferences": prefs,
+        "user_brief": (brief or "").strip(),
     }
 
     response = client.responses.parse(
