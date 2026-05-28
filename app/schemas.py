@@ -126,6 +126,14 @@ class GapResponse(BaseModel):
     summary: str
 
 
+class GapVerdict(BaseModel):
+    verdict: str
+    coherence_score: float = Field(..., ge=0, le=1)
+    suggested_priority_order: List[str]
+    redundancies: List[str]
+    final_note: str
+
+
 # ---------- Style profile ----------
 
 class StyleProfileSummary(BaseModel):
