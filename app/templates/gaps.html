@@ -15,7 +15,65 @@
 
 <div id="results" style="margin-top: 24px;"></div>
 
+<div id="verdictArea" style="margin-top: 24px; display:none;">
+  <button class="btn hot" id="verdictBtn">Analyse this iteration — overall verdict</button>
+  <p class="meta" id="verdictStatus" style="margin-top:8px;"></p>
+  <div id="verdict"></div>
+</div>
+
 <script>
+let currentGaps = [];   // the working set; refined pieces replace entries here
+let changed = [];       // parallel flags so refined cards get a marker
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cardHTML(g, i) {
+  const pairs = (g.pairs_with_existing || []).map(esc).join(', ');
+  const kw = (g.search_keywords || []).map(esc).join(' · ');
+  return `
+    <p class="priority ${esc(g.priority)}">${esc(g.priority)} priority · ${esc(g.kind)}${changed[i] ? ' · <span style="color:var(--hot)">revised</span>' : ''}</p>
+    <h3 class="serif" style="margin:6px 0;">${esc(g.piece)}</h3>
+    <p>${esc(g.why_it_unlocks_outfits)}</p>
+    <dl class="kv">
+      <dt>Colour</dt><dd>${esc(g.recommended_colour)}</dd>
+      <dt>Fabric</dt><dd>${esc(g.recommended_fabric)}</dd>
+      <dt>Silhouette</dt><dd>${esc(g.recommended_silhouette)}</dd>
+      <dt>Pairs with</dt><dd>${pairs}</dd>
+      <dt>Search</dt><dd>${kw}</dd>
+    </dl>
+    <div class="row" style="margin-top:10px;">
+      <input type="text" class="refine-input" style="flex:1; min-width:240px; padding:9px 12px; border:1px solid var(--line); border-radius:8px;"
+             placeholder="Ask for an alternative — e.g. 'in leather', 'cheaper option', 'a skirt instead'">
+      <button class="btn small refine-btn">Refine</button>
+    </div>
+    <p class="meta refine-status" style="margin-top:6px;"></p>
+  `;
+}
+
+function renderCard(i) {
+  const card = document.querySelector(`.gap-card[data-idx="${i}"]`);
+  if (card) card.innerHTML = cardHTML(currentGaps[i], i);
+}
+
+function renderAll() {
+  const out = document.getElementById('results');
+  out.innerHTML = '';
+  currentGaps.forEach((g, i) => {
+    const div = document.createElement('div');
+    div.className = 'gap-card';
+    div.dataset.idx = i;
+    div.innerHTML = cardHTML(g, i);
+    out.appendChild(div);
+  });
+  document.getElementById('verdictArea').style.display = currentGaps.length ? 'block' : 'none';
+  document.getElementById('verdict').innerHTML = '';
+  document.getElementById('verdictStatus').textContent = '';
+}
+
 document.getElementById('gapForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   document.getElementById('status').textContent = 'Analysing…';
@@ -31,26 +89,67 @@ document.getElementById('gapForm').addEventListener('submit', async (e) => {
     return;
   }
   const data = await r.json();
-  document.getElementById('status').textContent = '';
-  const out = document.getElementById('results');
-  out.innerHTML = data.summary ? `<p>${data.summary}</p>` : '';
-  for (const g of data.gaps) {
-    const div = document.createElement('div');
-    div.className = 'gap-card';
-    div.innerHTML = `
-      <p class="priority ${g.priority}">${g.priority} priority · ${g.kind}</p>
-      <h3 class="serif" style="margin:6px 0;">${g.piece}</h3>
-      <p>${g.why_it_unlocks_outfits}</p>
-      <dl class="kv">
-        <dt>Colour</dt><dd>${g.recommended_colour}</dd>
-        <dt>Fabric</dt><dd>${g.recommended_fabric}</dd>
-        <dt>Silhouette</dt><dd>${g.recommended_silhouette}</dd>
-        <dt>Pairs with</dt><dd>${(g.pairs_with_existing || []).join(', ')}</dd>
-        <dt>Search</dt><dd>${(g.search_keywords || []).join(' · ')}</dd>
-      </dl>
-    `;
-    out.appendChild(div);
+  document.getElementById('status').textContent = data.summary || '';
+  currentGaps = data.gaps || [];
+  changed = currentGaps.map(() => false);
+  renderAll();
+});
+
+// Refine a single card (event delegation).
+document.getElementById('results').addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('refine-btn')) return;
+  const card = e.target.closest('.gap-card');
+  const i = parseInt(card.dataset.idx, 10);
+  const input = card.querySelector('.refine-input');
+  const status = card.querySelector('.refine-status');
+  const message = input.value.trim();
+  if (!message) { status.textContent = 'Type what you would like to change.'; return; }
+  status.textContent = 'Refining…';
+  e.target.disabled = true;
+  const brief = document.getElementById('brief').value;
+  const r = await fetch('/api/gaps/refine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ piece: currentGaps[i], message, brief }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    status.textContent = err.detail || 'Could not refine.';
+    e.target.disabled = false;
+    return;
   }
+  currentGaps[i] = await r.json();
+  changed[i] = true;
+  renderCard(i);   // re-renders the card, clearing the input and showing "revised"
+});
+
+// Overall verdict on the current working set.
+document.getElementById('verdictBtn').addEventListener('click', async () => {
+  document.getElementById('verdictStatus').textContent = 'Assessing the set…';
+  const brief = document.getElementById('brief').value;
+  const r = await fetch('/api/gaps/verdict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pieces: currentGaps, brief }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    document.getElementById('verdictStatus').textContent = err.detail || 'Could not assess.';
+    return;
+  }
+  const v = await r.json();
+  document.getElementById('verdictStatus').textContent = '';
+  const order = (v.suggested_priority_order || []).map(esc).map(x => `<li>${x}</li>`).join('');
+  const redun = (v.redundancies || []).map(esc).map(x => `<li>${x}</li>`).join('');
+  document.getElementById('verdict').innerHTML = `
+    <div class="gap-card">
+      <p class="priority high">Overall verdict · coherence ${Number(v.coherence_score || 0).toFixed(2)}</p>
+      <p>${esc(v.verdict)}</p>
+      ${order ? `<dt class="meta">Suggested order to buy</dt><ol>${order}</ol>` : ''}
+      ${redun ? `<dt class="meta">Overlap / redundancy</dt><ul>${redun}</ul>` : ''}
+      ${v.final_note ? `<p><em>${esc(v.final_note)}</em></p>` : ''}
+    </div>
+  `;
 });
 </script>
 {% endblock %}
