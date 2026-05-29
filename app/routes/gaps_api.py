@@ -1,17 +1,22 @@
+import mimetypes
+from pathlib import Path
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
 from ..schemas import GapItem
-from ..ai.gaps import analyse_gaps, refine_gap, verdict_on_gaps
+from ..ai.gaps import analyse_gaps, refine_gap, verdict_on_gaps, evaluate_piece
 from ..ai.client import AIUnavailable
+from ..ai.images import bytes_to_data_url
 
 
 router = APIRouter(prefix="/api/gaps", tags=["gaps"])
+
+ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic"}
 
 
 class GapRequest(BaseModel):
@@ -67,3 +72,21 @@ def verdict_endpoint(payload: VerdictRequest, db: Session = Depends(get_db)):
     except AIUnavailable as e:
         raise HTTPException(503, str(e))
     return verdict.model_dump()
+
+
+@router.post("/evaluate")
+def evaluate_endpoint(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in ALLOWED_EXTS:
+        raise HTTPException(400, f"Unsupported file type: {ext}")
+    items = db.query(models.WardrobeItem).all()
+    if not items:
+        raise HTTPException(400, "Add wardrobe items first so the piece can be compared.")
+    pref = db.query(models.UserPreference).first()
+    mime = file.content_type or mimetypes.guess_type(file.filename or "")[0] or "image/jpeg"
+    data_url = bytes_to_data_url(file.file.read(), mime)
+    try:
+        result = evaluate_piece(data_url, items, pref)
+    except AIUnavailable as e:
+        raise HTTPException(503, str(e))
+    return result.model_dump()

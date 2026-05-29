@@ -1,12 +1,9 @@
 """Classify a wardrobe item from an image using OpenAI vision + Structured Outputs."""
 
-import base64
-import mimetypes
-from pathlib import Path
-
 from ..config import settings
 from ..schemas import GarmentClassification
 from .client import require_client
+from .images import image_path_to_data_url
 
 
 CLASSIFY_PROMPT = (
@@ -25,18 +22,10 @@ CLASSIFY_PROMPT = (
 )
 
 
-def _image_to_data_url(image_path: str) -> str:
-    p = Path(image_path)
-    mime, _ = mimetypes.guess_type(p.name)
-    mime = mime or "image/jpeg"
-    data = base64.b64encode(p.read_bytes()).decode("ascii")
-    return f"data:{mime};base64,{data}"
-
-
 def classify_item(image_path: str) -> GarmentClassification:
     """Send the local image to OpenAI's vision model and parse a structured result."""
     client = require_client()
-    data_url = _image_to_data_url(image_path)
+    data_url = image_path_to_data_url(image_path)
 
     # Use the Responses API with structured output parsing.
     response = client.responses.parse(

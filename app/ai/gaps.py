@@ -3,7 +3,7 @@
 from typing import List, Optional
 
 from ..config import settings
-from ..schemas import GapItem, GapResponse, GapVerdict
+from ..schemas import GapItem, GapResponse, GapVerdict, PieceEvaluation
 from .client import require_client
 
 
@@ -34,6 +34,22 @@ VERDICT_PROMPT = (
     "strategy for this wearer. Flag any redundancy or overlap, suggest the "
     "best order to acquire them, and give an honest overall verdict. Return "
     "JSON matching the schema."
+)
+
+EVALUATE_PROMPT = (
+    "A wearer is considering buying the item in this image. Using their "
+    "wardrobe inventory and preferences, assess it honestly. Identify what "
+    "the item is, then rate each dimension 1-5 (5 = excellent):\n"
+    "- style_alignment: how well it matches their style keywords and palette.\n"
+    "- gap_fill: how much it fills a genuine gap rather than duplicating what "
+    "they own.\n"
+    "- versatility: how many distinct outfits/occasions it can work across "
+    "their existing wardrobe.\n"
+    "- wardrobe_fit: how naturally it pairs with pieces they already own.\n"
+    "Then give an overall 1-5, a recommendation of 'buy', 'maybe', or 'skip', "
+    "concise reasoning, the existing pieces it pairs with, and a couple of "
+    "styling ideas. Be conservative and honest; don't flatter a poor fit. "
+    "Use Australian English. Return JSON matching the schema."
 )
 
 
@@ -154,4 +170,31 @@ def verdict_on_gaps(
     parsed = response.output_parsed
     if parsed is None:
         raise RuntimeError("OpenAI returned no parsed verdict.")
+    return parsed
+
+
+def evaluate_piece(data_url: str, items: List, preferences) -> PieceEvaluation:
+    """Assess a candidate piece (from its image) against the wardrobe."""
+    client = require_client()
+    context = {
+        "wardrobe_inventory": _inventory(items),
+        "preferences": _prefs(preferences),
+    }
+    response = client.responses.parse(
+        model=settings.openai_vision_model,
+        input=[
+            {"role": "system", "content": EVALUATE_PROMPT},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": "My wardrobe and preferences: " + str(context)},
+                    {"type": "input_image", "image_url": data_url},
+                ],
+            },
+        ],
+        text_format=PieceEvaluation,
+    )
+    parsed = response.output_parsed
+    if parsed is None:
+        raise RuntimeError("OpenAI returned no parsed evaluation.")
     return parsed

@@ -134,6 +134,20 @@ class GapVerdict(BaseModel):
     final_note: str
 
 
+class PieceEvaluation(BaseModel):
+    """Assessment of a candidate piece (e.g. a potential purchase) from its image."""
+    detected_item: str
+    style_alignment: int = Field(..., ge=1, le=5)
+    gap_fill: int = Field(..., ge=1, le=5)
+    versatility: int = Field(..., ge=1, le=5)
+    wardrobe_fit: int = Field(..., ge=1, le=5)
+    overall: int = Field(..., ge=1, le=5)
+    recommendation: Literal["buy", "maybe", "skip"]
+    reasoning: str
+    pairs_with_existing: List[str]
+    styling_ideas: str
+
+
 # ---------- Style profile ----------
 
 class StyleProfileSummary(BaseModel):

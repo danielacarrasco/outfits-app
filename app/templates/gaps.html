@@ -21,6 +21,18 @@
   <div id="verdict"></div>
 </div>
 
+<div class="section"><h2>Considering a piece?</h2></div>
+<p class="subhead">Drop a photo of something you're thinking of buying. I'll rate how well it fits your style and wardrobe.</p>
+
+<div class="upload-zone" id="evalZone">
+  <input type="file" id="evalFile" accept="image/*" />
+  <p class="meta" style="margin-top:12px;">Drag an image here or choose a file.</p>
+  <img id="evalPreview" class="preview" style="display:none; max-height:280px; margin-top:14px;" />
+  <div style="margin-top:14px;"><button class="btn" id="evalBtn">Evaluate this piece</button></div>
+  <p class="meta" id="evalStatus" style="margin-top:10px;"></p>
+</div>
+<div id="evalResult" style="margin-top:18px;"></div>
+
 <script>
 let currentGaps = [];   // the working set; refined pieces replace entries here
 let changed = [];       // parallel flags so refined cards get a marker
@@ -148,6 +160,71 @@ document.getElementById('verdictBtn').addEventListener('click', async () => {
       ${order ? `<dt class="meta">Suggested order to buy</dt><ol>${order}</ol>` : ''}
       ${redun ? `<dt class="meta">Overlap / redundancy</dt><ul>${redun}</ul>` : ''}
       ${v.final_note ? `<p><em>${esc(v.final_note)}</em></p>` : ''}
+    </div>
+  `;
+});
+
+// ---- Evaluate a candidate piece from an image ----
+const evalFile = document.getElementById('evalFile');
+const evalZone = document.getElementById('evalZone');
+const evalPreview = document.getElementById('evalPreview');
+
+function showPreview(file) {
+  if (!file) return;
+  evalPreview.src = URL.createObjectURL(file);
+  evalPreview.style.display = 'inline-block';
+}
+evalFile.addEventListener('change', () => showPreview(evalFile.files[0]));
+
+['dragover', 'dragenter'].forEach(ev =>
+  evalZone.addEventListener(ev, (e) => { e.preventDefault(); evalZone.style.borderColor = 'var(--ink)'; }));
+['dragleave', 'drop'].forEach(ev =>
+  evalZone.addEventListener(ev, (e) => { e.preventDefault(); evalZone.style.borderColor = ''; }));
+evalZone.addEventListener('drop', (e) => {
+  const f = e.dataTransfer.files[0];
+  if (f) { evalFile.files = e.dataTransfer.files; showPreview(f); }
+});
+
+function bar(label, n) {
+  const pct = (Number(n) / 5) * 100;
+  return `
+    <div style="margin:6px 0;">
+      <div class="meta" style="display:flex; justify-content:space-between;">
+        <span>${label}</span><span>${n}/5</span>
+      </div>
+      <div style="height:8px; background:var(--line); border-radius:999px; overflow:hidden;">
+        <div style="width:${pct}%; height:100%; background:var(--accent-soft);"></div>
+      </div>
+    </div>`;
+}
+
+document.getElementById('evalBtn').addEventListener('click', async () => {
+  if (!evalFile.files.length) { document.getElementById('evalStatus').textContent = 'Choose or drop an image first.'; return; }
+  document.getElementById('evalStatus').textContent = 'Evaluating…';
+  const fd = new FormData();
+  fd.append('file', evalFile.files[0]);
+  const r = await fetch('/api/gaps/evaluate', { method: 'POST', body: fd });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    document.getElementById('evalStatus').textContent = err.detail || 'Could not evaluate.';
+    return;
+  }
+  const v = await r.json();
+  document.getElementById('evalStatus').textContent = '';
+  const recColour = v.recommendation === 'buy' ? 'var(--good)'
+    : v.recommendation === 'skip' ? 'var(--bad)' : 'var(--accent-soft)';
+  const pairs = (v.pairs_with_existing || []).map(esc).join(', ');
+  document.getElementById('evalResult').innerHTML = `
+    <div class="gap-card">
+      <p class="priority" style="color:${recColour}">${esc(v.recommendation)} · overall ${v.overall}/5</p>
+      <h3 class="serif" style="margin:6px 0;">${esc(v.detected_item)}</h3>
+      ${bar('Style alignment', v.style_alignment)}
+      ${bar('Fills a gap', v.gap_fill)}
+      ${bar('Versatility', v.versatility)}
+      ${bar('Fits current wardrobe', v.wardrobe_fit)}
+      <p style="margin-top:12px;">${esc(v.reasoning)}</p>
+      ${pairs ? `<dl class="kv"><dt>Pairs with</dt><dd>${pairs}</dd></dl>` : ''}
+      ${v.styling_ideas ? `<p><em>${esc(v.styling_ideas)}</em></p>` : ''}
     </div>
   `;
 });
